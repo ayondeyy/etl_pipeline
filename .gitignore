@@ -1,0 +1,5 @@
+/.vscode
+/database_connection.json
+/__pycache__
+/data
+*.sql
