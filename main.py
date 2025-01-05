@@ -13,3 +13,4 @@ from data_manipulation import manipulate_data
 
 
 tables = extraction.extract()
+data = transformation.transform(tables)

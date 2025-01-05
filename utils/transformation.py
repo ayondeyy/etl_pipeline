@@ -1,211 +1,137 @@
 """
 Transform - Transforming tables into dataframes and manipulating them for analysis
+
+Steps involved:
+Step 1: Merging tables
+Step 2: Converting integer to string
+Step 3: Creating new columns
+Step 4: Change cases to title and lower cases
+Step 5: Removing appropriate rows with null values
+Step 6: Selecting required columns
+Step 7: Renaming columns
 """
 # Remove Later
-import os
-os.chdir('D:/Work/Project/etl_pipeline')
-from utils import extraction
-tables = extraction.extract()
+# import os
+# os.chdir('D:/Work/Project/etl_pipeline')
+# from utils import extraction
+# tables = extraction.extract()
 
 import pandas as pd
 import numpy as np
 
-customer = tables['customer']
-address = tables['address']
-city = tables['city']
-country = tables['country']
-store = tables['store']
-staff = tables['staff']
-payment = tables['payment']
-film = tables['film']
-film_category = tables['film_category']
-category = tables['category']
-language = tables['language']
-film_actor = tables['film_actor']
-actor = tables['actor']
-inventory = tables['inventory']
-rental = tables['rental']
+pd.options.mode.copy_on_write = True
 
-# Store name by location
-store_info = store.join(address, on='address_id', how='left', lsuffix='_store', rsuffix='_add')\
-                    .join(city, on='city_id', how='left', lsuffix='_storeadd', rsuffix='_city')\
-                    .join(country, on='country_id', how='left', lsuffix='_storecity', rsuffix='_country')
-store_info['store_name'] = "Store at " + store_info['country']
+def transform(tables):
+    print("\nTransforming data...")
 
-# Customer Data
-customer_data = pd.merge(customer, address, on='address_id', how='left')
-customer_data = pd.merge(customer_data, city, on='city_id', how='left')
-customer_data = pd.merge(customer_data, country, on='country_id', how='left', suffixes=('_data', '_country'))
-customer_data = pd.merge(customer_data, store_info, on='store_id', how='left')
+    customer = tables['customer']
+    address = tables['address']
+    city = tables['city']
+    country = tables['country']
+    store = tables['store']
+    staff = tables['staff']
+    payment = tables['payment']
+    film = tables['film']
+    film_category = tables['film_category']
+    category = tables['category']
+    language = tables['language']
+    film_actor = tables['film_actor']
+    actor = tables['actor']
+    inventory = tables['inventory']
+    rental = tables['rental']
 
-customer_data['active'] = np.where(customer_data['active'] == 1, 'Active', 'Inactive')
-customer_data = customer_data[['store_name', 'active', 'city_x', 'country_x']]
-customer_data.rename(columns={'city_x': 'city', 'country_x': 'country'}, inplace=True)
+    # Store name by location
+    store_info = store.join(address, on='address_id', how='left', lsuffix='_store', rsuffix='_add')\
+                        .join(city, on='city_id', how='left', lsuffix='_storeadd', rsuffix='_city')\
+                        .join(country, on='country_id', how='left', lsuffix='_storecity', rsuffix='_country')
+    store_info['store_name'] = "Store at " + store_info['country']
 
+    # Customer Data
+    customer_data = pd.merge(customer, address, on='address_id', how='left')
+    customer_data = pd.merge(customer_data, city, on='city_id', how='left')
+    customer_data = pd.merge(customer_data, country, on='country_id', how='left', suffixes=('_data', '_country'))
+    customer_data = pd.merge(customer_data, store_info, on='store_id', how='left')
 
-# Business Data
-business_data = pd.merge(payment, staff, on='staff_id', how='left')
-business_data = pd.merge(business_data, store_info, on='store_id', how='left')
-business_data = pd.merge(business_data, address, left_on ='address_id_x', right_on='address_id', how='left')
-business_data = pd.merge(business_data, city, left_on='city_id_x', right_on='city_id', how='left', suffixes=('_bus', '_city'))
-business_data = pd.merge(business_data, country, left_on='country_id_bus', right_on='country_id', how='left', suffixes=('_data', '_country'))
+    customer_data['active'] = np.where(customer_data['active'] == 1, 'Active', 'Inactive')
 
-business_data = business_data[['payment_date', 'active', 'store_name', 'city_bus', 'country_country', 'amount']]
-business_data.rename(columns={'city_bus': 'city', 'country_country': 'country'}, inplace=True)
-
-business_data['active'] = np.where(business_data['active'] == 1, 'Active', 'Inactive')
-
-business_data["payment_year"] = business_data['payment_date'].dt.year
-business_data["payment_month"] = business_data['payment_date'].dt.month_name()
-business_data["payment_day_month"] = business_data['payment_date'].dt.day
-business_data["payment_day_week"] = business_data['payment_date'].dt.day_name()
+    customer_data = customer_data[['store_name', 'active', 'city_x', 'country_x']]
+    customer_data.rename(columns={'city_x': 'city', 'country_x': 'country'}, inplace=True)
 
 
-# Movie Data
-raw_movie = pd.merge(film, film_category, on='film_id', how='left')
-raw_movie = pd.merge(raw_movie, category, on='category_id', how='left')
+    # Business Data
+    business_data = pd.merge(payment, staff, on='staff_id', how='left')
+    business_data = pd.merge(business_data, store_info, on='store_id', how='left')
+    business_data = pd.merge(business_data, address, left_on ='address_id_x', right_on='address_id', how='left')
+    business_data = pd.merge(business_data, city, left_on='city_id_x', right_on='city_id', how='left', suffixes=('_bus', '_city'))
+    business_data = pd.merge(business_data, country, left_on='country_id_bus', right_on='country_id', how='left', suffixes=('_data', '_country'))
 
-movie_data = movie_data[['title', 'rental_duration', 'rental_rate', 'length', 'rating', 'special_features', 'name_film', 'rental_date', 'return_date', 'amount', 'payment_date']]
-movie_data.rename(columns={'name_film': 'category'}, inplace=True)
+    business_data['active'] = np.where(business_data['active'] == 1, 'Active', 'Inactive')
 
+    business_data["payment_year"] = business_data['payment_date'].dt.year
+    business_data["payment_month"] = business_data['payment_date'].dt.month_name()
+    business_data["payment_day_month"] = business_data['payment_date'].dt.day
+    business_data["payment_day_week"] = business_data['payment_date'].dt.day_name()
 
-# Movie Business Data
-raw_movie = pd.merge(raw_movie, inventory, on='film_id', how='left')
-raw_movie = pd.merge(raw_movie, rental, on='inventory_id', how='left', suffixes=('_film2', '_rental'))
-raw_movie = pd.merge(raw_movie, payment, on='rental_id', how='left')
-
-
-
-
-# Actor Data
-actor_data = pd.merge(film_actor, actor, on='actor_id', how='outer')
-actor_data = pd.merge(actor_data, film, on='film_id', how='left')
-# movie_data = pd.merge(movie_data, inventory, on='film_id', how='left')
-# movie_data = pd.merge(movie_data, rental, on='inventory_id', how='left')
-# movie_data = pd.merge(movie_data, payment, on='rental_id', how='left')
+    business_data = business_data[['payment_date', 'payment_year', 'payment_month', 'payment_day_month', 'payment_day_week', 'active', 'store_name', 'city_bus', 'country_country', 'amount']]
+    business_data.rename(columns={'city_bus': 'city', 'country_country': 'country'}, inplace=True)
 
 
+    # Common Movie Features
+    raw_movie = pd.merge(film, film_category, on='film_id', how='left')
+    raw_movie = pd.merge(raw_movie, category, on='category_id', how='left')
+    raw_movie['rental_amount'] = (raw_movie['rental_duration'] * raw_movie['rental_rate']).round(2)
+    raw_movie['title'] = raw_movie['title'].str.title()
 
 
+    # Movie Data
+    movie_data = raw_movie[['title', 'rental_duration', 'rental_rate', 'rental_amount', 'length', 'rating', 'special_features', 'name']]
+    movie_data.rename(columns={'length': 'length_in_min', 'name': 'category'}, inplace=True)
 
 
+    # Movie Business Data
+    movie_business_data = pd.merge(raw_movie, inventory, on='film_id', how='left', suffixes=('_raw', None))
+    movie_business_data = pd.merge(movie_business_data, rental, on='inventory_id', how='left', suffixes=('_film2', '_rental'))
+    movie_business_data = pd.merge(movie_business_data, payment, on='rental_id', how='left')
+
+    movie_business_data["payment_year"] = movie_business_data['payment_date'].dt.year
+    movie_business_data["payment_month"] = movie_business_data['payment_date'].dt.month_name()
+    movie_business_data["payment_day_month"] = movie_business_data['payment_date'].dt.day
+    movie_business_data["payment_day_week"] = movie_business_data['payment_date'].dt.day_name()
+
+    movie_business_data = movie_business_data[['title', 'rental_duration', 'rental_rate', 'rental_amount', 'length', 'replacement_cost', 'rating', 'special_features', 'name', 'rental_date', 'payment_date', 'payment_year', 'payment_month', 'payment_day_month', 'payment_day_week', 'amount']]
+    movie_business_data.rename(columns={'length': 'length_in_min', 'name': 'category'}, inplace=True)
 
 
+    # Actor Data
+    actor_data = pd.merge(film_actor, actor, on='actor_id', how='left')
+    actor_data = pd.merge(actor_data, film, on='film_id', how='left')
+    actor_data = pd.merge(actor_data, film_category, on='film_id', how='left', suffixes=('_data', '_cat'))
+    actor_data = pd.merge(actor_data, category, on='category_id', how='left')
+    actor_data = pd.merge(actor_data, inventory, on='film_id', how='left', suffixes=('_data2', '_inv'))
+    actor_data = pd.merge(actor_data, rental, on='inventory_id', how='left')
+    actor_data = pd.merge(actor_data, payment, on='rental_id', how='left', suffixes=('_data3', '_pay'))
 
+    actor_data['actor'] = actor_data['first_name'] + " " + actor_data['last_name']
+    actor_data['rental_amount'] = (actor_data['rental_duration'] * actor_data['rental_rate']).round(2)
+    actor_data["payment_year"] = actor_data['payment_date'].dt.year
+    actor_data["payment_month"] = actor_data['payment_date'].dt.month_name()
+    actor_data["payment_day_month"] = actor_data['payment_date'].dt.day
+    actor_data["payment_day_week"] = actor_data['payment_date'].dt.day_name()
 
+    actor_data['actor'] = actor_data['actor'].str.title()
+    actor_data['title'] = actor_data['title'].str.title()
 
+    actor_data = actor_data[['actor', 'title', 'rental_duration', 'rental_rate', 'rental_amount', 'length', 'rating', 'special_features', 'name', 'payment_date', 'payment_year', 'payment_month', 'payment_day_month', 'payment_day_week', 'amount']]
+    actor_data.rename(columns={'title': 'movie_title', 'length': 'length_in_min', 'name': 'category'}, inplace=True)
 
+    data = {
+        'customer_data': customer_data,
+        'business_data': business_data,
+        'movie_data': movie_data,
+        'movie_business_data': movie_business_data,
+        'actor_data': actor_data
+    }
 
+    print("\nData Transformed Successfully...!")
 
-
-
-
-# from sqlalchemy import text
-# import pandas as pd
-
-# def rename_duplicates(columns): 
-#     seen = {} 
-#     new_columns = []
-
-#     for col in columns: 
-#         if col not in seen: 
-#             seen[col] = 0 
-#             new_columns.append(col) 
-#         else: 
-#             seen[col] += 1 
-#             new_columns.append(f"{col}_duplicated_{seen[col]}")
-
-#     return new_columns
-
-
-# def transform(pg_conn):
-#     try:
-#         customer_data = pd.read_sql(text("""
-#                                     SELECT
-#                                         customer.*,
-#                                         ':',
-#                                         address.*,
-#                                         ':',
-#                                         city.*,
-#                                         ':',
-#                                         country.*
-#                                     FROM
-#                                         customer
-#                                         FULL JOIN address ON customer.address_id = address.address_id
-#                                         FULL JOIN city ON address.city_id = city.city_id
-#                                         FULL JOIN country ON city.country_id = country.country_id;
-#                                             """), con = pg_conn)
-        
-#         customer_data.columns = rename_duplicates(customer_data.columns)
-
-#         business_data = pd.read_sql(text("""
-#                                     SELECT
-#                                         staff.*,
-#                                         ':',
-#                                         payment.*,
-#                                         ':',
-#                                         store.*,
-#                                         ':',
-#                                         address.*,
-#                                         ':',
-#                                         city.*,
-#                                         ':',
-#                                         country.*
-#                                     FROM
-#                                         staff
-#                                         FULL JOIN payment ON staff.staff_id = payment.staff_id
-#                                         FULL JOIN store ON staff.store_id = store.store_id
-#                                         FULL JOIN address ON store.address_id = address.address_id
-#                                         FULL JOIN city ON address.city_id = city.city_id
-#                                         FULL JOIN country ON city.country_id = country.country_id;
-#                                             """), con = pg_conn)
-        
-#         business_data.columns = rename_duplicates(business_data.columns)
-
-#         movie_data = pd.read_sql(text("""
-#                                 SELECT
-#                                     film.*,
-#                                     ':',
-#                                     film_category.*,
-#                                     ':',
-#                                     category.*,
-#                                     ':',
-#                                     language.*,
-#                                     ':',
-#                                     film_actor.*,
-#                                     ':',
-#                                     actor.*
-#                                 FROM
-#                                     film
-#                                     FULL JOIN film_category ON film.film_id = film_category.film_id
-#                                     FULL JOIN category ON film_category.category_id = category.category_id
-#                                     FULL JOIN language ON film.language_id = language.language_id
-#                                     FULL JOIN film_actor ON film.film_id = film_actor.film_id
-#                                     FULL JOIN actor ON film_actor.actor_id = actor.actor_id;
-#                                         """), con = pg_conn)
-        
-#         movie_data.columns = rename_duplicates(movie_data.columns)
-
-#         movie_business_data = pd.read_sql(text("""
-#                                         SELECT
-#                                             film.*,
-#                                             ':',
-#                                             inventory.*,
-#                                             ':',
-#                                             rental.*,
-#                                             ':',
-#                                             payment.*
-#                                         FROM
-#                                             film
-#                                             FULL JOIN inventory ON film.film_id = inventory.film_id
-#                                             FULL JOIN rental ON inventory.inventory_id = rental.inventory_id
-#                                             FULL JOIN payment ON rental.rental_id = payment.rental_id;
-#                                                 """), con = pg_conn)
-        
-#         movie_business_data.columns = rename_duplicates(movie_business_data.columns)
-    
-#     finally:
-#         print("\nData transformed Successfully...! Closing destination connection...")
-#         pg_conn.close()
-
-#     return customer_data, business_data, movie_data, movie_business_data
+    return data

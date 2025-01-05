@@ -1,5 +1,4 @@
 """
-# Extract - Fetching data from MySQL to PostgreSQL as staging database
 Extract - Fetching data from MySQL
 """
 
@@ -20,9 +19,7 @@ def extract():
     except:
         print("\nError in MySQL Connection.")
 
-    # Getting the table names
     raw_table_list = mysql_conn.execute(text('SHOW TABLES')).fetchall()
-    # table_list = list(map(lambda x: x[0], raw_table_list))
 
     tables = {}
     for (table_name,) in raw_table_list:
@@ -33,31 +30,3 @@ def extract():
     print("\nData extracted Successfully...!")
 
     return tables
-
-
-
-
-
-
-# from sqlalchemy import text
-# import pandas as pd
-
-# def extract(mysql_conn, pg_engine):
-#     print("\nExtracting Data...")
-#     # Getting the table names
-#     raw_table_list = mysql_conn.execute(text('SHOW TABLES')).fetchall()
-#     table_list = list(map(lambda x: x[0], raw_table_list))
-
-#     # Transferring data
-#     try:
-#         for table in table_list:
-#             temp = pd.read_sql(sql = text('SELECT * FROM ' + table), con = mysql_conn)
-#             temp.to_sql(name = table, con = pg_engine, if_exists='replace', index=False)
-
-#     except:
-#         print("\nError in transfering the Data...! Closing connections...")
-#         mysql_conn.close()
-
-#     finally:
-#         print("\nData extracted Successfully...! Closing source connections...")
-#         mysql_conn.close()
