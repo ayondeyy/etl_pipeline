@@ -3,7 +3,7 @@ Transform - Transforming tables into dataframes and manipulating them for analys
 """
 # Remove Later
 import os
-os.chdir('D:/Work/Project/etl_data_analysis')
+os.chdir('D:/Work/Project/etl_pipeline')
 from utils import extraction
 tables = extraction.extract()
 
@@ -39,17 +39,21 @@ customer_data = pd.merge(customer_data, country, on='country_id', how='left', su
 customer_data = pd.merge(customer_data, store_info, on='store_id', how='left')
 
 customer_data['active'] = np.where(customer_data['active'] == 1, 'Active', 'Inactive')
-customer_data = customer_data[['store_name', 'active', 'city', 'country']]
+customer_data = customer_data[['store_name', 'active', 'city_x', 'country_x']]
+customer_data.rename(columns={'city_x': 'city', 'country_x': 'country'}, inplace=True)
 
 
 # Business Data
 business_data = pd.merge(payment, staff, on='staff_id', how='left')
 business_data = pd.merge(business_data, store_info, on='store_id', how='left')
-business_data = pd.merge(business_data, address, on='address_id', how='left')
-business_data = pd.merge(business_data, city, on='city_id', how='left', suffixes=('_bus', '_city'))
-business_data = pd.merge(business_data, country, on='country_id', how='left', suffixes=('_data', '_country'))
+business_data = pd.merge(business_data, address, left_on ='address_id_x', right_on='address_id', how='left')
+business_data = pd.merge(business_data, city, left_on='city_id_x', right_on='city_id', how='left', suffixes=('_bus', '_city'))
+business_data = pd.merge(business_data, country, left_on='country_id_bus', right_on='country_id', how='left', suffixes=('_data', '_country'))
 
-business_data = business_data[['payment_date', 'active', 'store_name', 'city', 'country', 'amount']]
+business_data = business_data[['payment_date', 'active', 'store_name', 'city_bus', 'country_country', 'amount']]
+business_data.rename(columns={'city_bus': 'city', 'country_country': 'country'}, inplace=True)
+
+business_data['active'] = np.where(business_data['active'] == 1, 'Active', 'Inactive')
 
 business_data["payment_year"] = business_data['payment_date'].dt.year
 business_data["payment_month"] = business_data['payment_date'].dt.month_name()
@@ -65,12 +69,10 @@ movie_data = movie_data[['title', 'rental_duration', 'rental_rate', 'length', 'r
 movie_data.rename(columns={'name_film': 'category'}, inplace=True)
 
 
-# MOvie Business Data
+# Movie Business Data
 raw_movie = pd.merge(raw_movie, inventory, on='film_id', how='left')
 raw_movie = pd.merge(raw_movie, rental, on='inventory_id', how='left', suffixes=('_film2', '_rental'))
 raw_movie = pd.merge(raw_movie, payment, on='rental_id', how='left')
-
-
 
 
 
