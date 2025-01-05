@@ -10,11 +10,6 @@ Step 5: Removing appropriate rows with null values
 Step 6: Selecting required columns
 Step 7: Renaming columns
 """
-# Remove Later
-# import os
-# os.chdir('D:/Work/Project/etl_pipeline')
-# from utils import extraction
-# tables = extraction.extract()
 
 import pandas as pd
 import numpy as np

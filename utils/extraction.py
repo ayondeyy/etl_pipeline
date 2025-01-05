@@ -14,7 +14,7 @@ def extract():
         mysql_conn_string = 'mysql://'+db_param["mysql_username"]+':'+db_param["mysql_password"]+'@'+db_param["mysql_host"]+':'+db_param["mysql_port"]+'/'+db_param["mysql_database_name"]
         mysql_engine = create_engine(mysql_conn_string, echo = False)
         mysql_conn = mysql_engine.connect()
-        print("\nConnection to source Successful.")
+        print("\nConnection to source database successful.")
 
     except:
         print("\nError in MySQL Connection.")
